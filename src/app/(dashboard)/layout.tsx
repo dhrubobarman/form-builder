@@ -13,7 +13,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
           <UserButton afterSignOutUrl="/sign-in" />
         </div>
       </nav>
-      <main className=" w-full flex-grow">{children}</main>
+      <main className="flex w-full flex-grow">{children}</main>
     </div>
   );
 };
