@@ -70,7 +70,7 @@ const FormSubmitComponent = ({
           <p className=" text-muted-foreground">
             Thank you for submitting the form. You can close this page now.
           </p>
-          <Button onClick={() => window.close()}>Close</Button>
+          {/* <Button onClick={() => window.close()}>Close</Button> */}
         </div>
       </div>
     );

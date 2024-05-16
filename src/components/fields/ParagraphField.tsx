@@ -65,13 +65,13 @@ const DesignerComponent = ({
   return (
     <div className="flex flex-col gap-2 w-full">
       <Label className="text-muted-foreground ">Paragraph field</Label>
-      <p className={cn(alignment)}>{text}</p>
+      <p className={cn("text-[13px]", alignment)}>{text}</p>
     </div>
   );
 };
 
 const propertiesSchema = z.object({
-  text: z.string().min(2).max(50),
+  text: z.string().min(2).max(200),
   alignment: z.enum(["text-left", "text-center", "text-right"]),
 });
 
@@ -173,5 +173,5 @@ const FormComponent = ({
 }) => {
   const element = elementInstance as CustomInstance;
   const { text, alignment } = element.extraAttributes;
-  return <p className={cn(alignment)}>{text}</p>;
+  return <p className={cn("text-[13px]", alignment)}>{text}</p>;
 };
