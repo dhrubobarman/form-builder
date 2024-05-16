@@ -75,7 +75,7 @@ const StatsCards = ({ data, loading }: StatsCardsProps) => {
         title="Submission rate"
         icon={<HiCursorClick className="text-primary" />}
         helperText={"Visits that result in form submission"}
-        value={data?.submissionRate.toLocaleString() + "%" || ""}
+        value={data?.submissionRate.toFixed(2) + "%" || ""}
         loading={loading}
         className="shadow-md shadow-green-600"
       />
@@ -83,7 +83,7 @@ const StatsCards = ({ data, loading }: StatsCardsProps) => {
         title="Bounce rate"
         icon={<TbArrowBounce className="text-primary" />}
         helperText={"Visits that leave without interacting"}
-        value={data?.submissionRate.toLocaleString() + "%" || ""}
+        value={data?.bounceRate.toFixed(2) + "%" || ""}
         loading={loading}
         className="shadow-md shadow-red-600"
       />
@@ -99,7 +99,7 @@ type StatsCardProps = {
   loading: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-const StatsCard = ({
+export const StatsCard = ({
   title,
   helperText,
   icon,
@@ -180,11 +180,7 @@ const FormCard = ({ form }: FormCardProps) => {
       </CardContent>
       <CardFooter>
         {form.published ? (
-          <Button
-            asChild
-            variant={"secondary"}
-            className="w-full mt-2 text-md gap-4"
-          >
+          <Button asChild className="w-full mt-2 text-md gap-4">
             <Link href={`/forms/${form.id}`}>
               View submission <BiRightArrowAlt />
             </Link>

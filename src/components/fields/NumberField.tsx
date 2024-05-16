@@ -1,37 +1,35 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Bs123 } from "react-icons/bs";
+import { z } from "zod";
 import {
   ElementsType,
   FormElement,
   FormElementInstance,
   SetFormValues,
 } from "../FormElements";
-import { MdTextFields } from "react-icons/md";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import useDesigner from "../hooks/useDesigner";
 import {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "../ui/form";
-import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { cn } from "@/lib/utils";
 
-const type: ElementsType = "TextField";
+const type: ElementsType = "NumberField";
 
 const extraAttributes = {
-  type: "text",
-  label: "Text field",
+  type: "number",
+  label: "Number field",
   helperText: "Helper text",
   required: false,
   placeholder: "Value here...",
@@ -42,7 +40,6 @@ const propertiesSchema = z.object({
   helperText: z.string().max(50),
   required: z.boolean().default(false),
   placeholder: z.string().max(50),
-  // type: z.string().optional(),
 });
 
 type PropertiesFormSchema = z.infer<typeof propertiesSchema>;
@@ -51,7 +48,7 @@ type CustomInstance = FormElementInstance & {
   extraAttributes: typeof extraAttributes;
 };
 
-export const TextFieldFormElement: FormElement = {
+export const NumberFieldFormElement: FormElement = {
   type,
   construct: (id: string) => ({
     id,
@@ -59,8 +56,8 @@ export const TextFieldFormElement: FormElement = {
     extraAttributes,
   }),
   designerButtonElement: {
-    icon: MdTextFields,
-    label: "Text field",
+    icon: Bs123,
+    label: "Number field",
   },
   designerComponent: (props) => <DesignerComponent {...props} />,
   formComponent: (props) => <FormComponent {...props} />,
@@ -273,7 +270,10 @@ const FormComponent = ({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={(e) => {
-          const valid = TextFieldFormElement.validate(element, e.target.value);
+          const valid = NumberFieldFormElement.validate(
+            element,
+            e.target.value
+          );
           setError(!valid);
           if (setFormValues) {
             setFormValues(element.id, e.target.value);

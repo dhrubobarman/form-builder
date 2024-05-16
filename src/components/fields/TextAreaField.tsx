@@ -1,40 +1,40 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { BsTextareaResize } from "react-icons/bs";
+import { z } from "zod";
 import {
   ElementsType,
   FormElement,
   FormElementInstance,
   SetFormValues,
 } from "../FormElements";
-import { MdTextFields } from "react-icons/md";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import useDesigner from "../hooks/useDesigner";
 import {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "../ui/form";
-import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { cn } from "@/lib/utils";
+import { Textarea } from "../ui/textarea";
+import { Slider } from "../ui/slider";
 
-const type: ElementsType = "TextField";
+const type: ElementsType = "TextAreaField";
 
 const extraAttributes = {
-  type: "text",
-  label: "Text field",
+  label: "TextArea field",
   helperText: "Helper text",
   required: false,
   placeholder: "Value here...",
+  rows: 3,
 };
 
 const propertiesSchema = z.object({
@@ -42,7 +42,7 @@ const propertiesSchema = z.object({
   helperText: z.string().max(50),
   required: z.boolean().default(false),
   placeholder: z.string().max(50),
-  // type: z.string().optional(),
+  rows: z.number().min(1).max(10).default(3),
 });
 
 type PropertiesFormSchema = z.infer<typeof propertiesSchema>;
@@ -51,7 +51,7 @@ type CustomInstance = FormElementInstance & {
   extraAttributes: typeof extraAttributes;
 };
 
-export const TextFieldFormElement: FormElement = {
+export const TextAreaFieldFormElement: FormElement = {
   type,
   construct: (id: string) => ({
     id,
@@ -59,8 +59,8 @@ export const TextFieldFormElement: FormElement = {
     extraAttributes,
   }),
   designerButtonElement: {
-    icon: MdTextFields,
-    label: "Text field",
+    icon: BsTextareaResize,
+    label: "TextArea field",
   },
   designerComponent: (props) => <DesignerComponent {...props} />,
   formComponent: (props) => <FormComponent {...props} />,
@@ -83,7 +83,7 @@ const DesignerComponent = ({
   elementInstance: FormElementInstance;
 }) => {
   const element = elementInstance as CustomInstance;
-  const { label, placeholder, helperText, required, type } =
+  const { label, placeholder, helperText, required, rows } =
     element.extraAttributes;
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -91,7 +91,12 @@ const DesignerComponent = ({
         {label}
         {required && <span className="text-red-500">*</span>}
       </Label>
-      <Input readOnly disabled placeholder={placeholder} type={type} />
+      <Textarea
+        readOnly
+        disabled
+        placeholder={placeholder}
+        className="min-h-[45px] max-h-[45px]"
+      />
       {helperText && (
         <p className="text-muted-foreground text-[0.8rem]">{helperText}</p>
       )}
@@ -233,6 +238,32 @@ const PropertiesComponent = ({
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name={"rows"}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Rows {form.watch("rows")}</FormLabel>
+              <FormControl>
+                <Slider
+                  defaultValue={[field.value]}
+                  onValueChange={(value) => {
+                    console.log(value);
+
+                    field.onChange(value[0]);
+                  }}
+                  min={1}
+                  max={10}
+                />
+              </FormControl>
+              <FormDescription>
+                The helper text of the field. It will be displayed below the
+                field
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   );
@@ -250,7 +281,7 @@ const FormComponent = ({
   defaultValue?: string;
 }) => {
   const element = elementInstance as CustomInstance;
-  const { label, placeholder, helperText, required, type } =
+  const { label, placeholder, helperText, required, rows } =
     element.extraAttributes;
 
   const [value, setValue] = useState(defaultValue);
@@ -266,14 +297,17 @@ const FormComponent = ({
         {label}
         {required && <span className="text-primary ml-1">*</span>}
       </Label>
-      <Input
+      <Textarea
         placeholder={placeholder}
-        type={type}
+        rows={rows}
         required={required}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={(e) => {
-          const valid = TextFieldFormElement.validate(element, e.target.value);
+          const valid = TextAreaFieldFormElement.validate(
+            element,
+            e.target.value
+          );
           setError(!valid);
           if (setFormValues) {
             setFormValues(element.id, e.target.value);

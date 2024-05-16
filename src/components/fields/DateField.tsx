@@ -1,48 +1,48 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { BsFillCalendarDateFill } from "react-icons/bs";
+import { z } from "zod";
 import {
   ElementsType,
   FormElement,
   FormElementInstance,
   SetFormValues,
 } from "../FormElements";
-import { MdTextFields } from "react-icons/md";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import useDesigner from "../hooks/useDesigner";
 import {
-  useFormField,
   Form,
-  FormItem,
-  FormLabel,
   FormControl,
   FormDescription,
-  FormMessage,
   FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "../ui/form";
-import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { CalendarIcon } from "@radix-ui/react-icons";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { format } from "date-fns";
+import { Calendar } from "../ui/calendar";
 
-const type: ElementsType = "TextField";
+const type: ElementsType = "DateField";
 
 const extraAttributes = {
-  type: "text",
-  label: "Text field",
+  type: "date",
+  label: "Date field",
   helperText: "Helper text",
   required: false,
-  placeholder: "Value here...",
 };
 
 const propertiesSchema = z.object({
   label: z.string().min(2).max(50),
   helperText: z.string().max(50),
   required: z.boolean().default(false),
-  placeholder: z.string().max(50),
-  // type: z.string().optional(),
 });
 
 type PropertiesFormSchema = z.infer<typeof propertiesSchema>;
@@ -51,7 +51,7 @@ type CustomInstance = FormElementInstance & {
   extraAttributes: typeof extraAttributes;
 };
 
-export const TextFieldFormElement: FormElement = {
+export const DateFieldFormElement: FormElement = {
   type,
   construct: (id: string) => ({
     id,
@@ -59,8 +59,8 @@ export const TextFieldFormElement: FormElement = {
     extraAttributes,
   }),
   designerButtonElement: {
-    icon: MdTextFields,
-    label: "Text field",
+    icon: BsFillCalendarDateFill,
+    label: "Date field",
   },
   designerComponent: (props) => <DesignerComponent {...props} />,
   formComponent: (props) => <FormComponent {...props} />,
@@ -91,7 +91,13 @@ const DesignerComponent = ({
         {label}
         {required && <span className="text-red-500">*</span>}
       </Label>
-      <Input readOnly disabled placeholder={placeholder} type={type} />
+      <Button
+        variant={"outline"}
+        className="w-full justify-start text-left font-normal"
+      >
+        <CalendarIcon className="mr-2 size-4" />
+        <span>Pick a date</span>
+      </Button>
       {helperText && (
         <p className="text-muted-foreground text-[0.8rem]">{helperText}</p>
       )}
@@ -165,29 +171,6 @@ const PropertiesComponent = ({
         />
         <FormField
           control={form.control}
-          name={"placeholder"}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Placeholder</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  {...field}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      e.currentTarget.blur();
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormDescription>Placeholder of the field</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name={"helperText"}
           render={({ field }) => (
             <FormItem>
@@ -253,7 +236,9 @@ const FormComponent = ({
   const { label, placeholder, helperText, required, type } =
     element.extraAttributes;
 
-  const [value, setValue] = useState(defaultValue);
+  const [date, setDate] = useState<Date | undefined>(
+    defaultValue ? new Date(defaultValue) : undefined
+  );
   const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
@@ -266,21 +251,36 @@ const FormComponent = ({
         {label}
         {required && <span className="text-primary ml-1">*</span>}
       </Label>
-      <Input
-        placeholder={placeholder}
-        type={type}
-        required={required}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={(e) => {
-          const valid = TextFieldFormElement.validate(element, e.target.value);
-          setError(!valid);
-          if (setFormValues) {
-            setFormValues(element.id, e.target.value);
-          }
-        }}
-        className={cn(error && "border-red-500")}
-      />
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !date && "text-muted-foreground",
+              error && "border-red-500"
+            )}
+          >
+            <CalendarIcon className="mr-2 size-4" />
+            {date ? format(date, "PPP") : <span>Pick a date</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(date) => {
+              setDate(date);
+              if (!setFormValues) return;
+              const value = date?.toUTCString() || "";
+              const valid = DateFieldFormElement.validate(element, value);
+              setError(!valid);
+              setFormValues(element.id, value);
+            }}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
       {helperText && (
         <p
           className={cn(
